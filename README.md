@@ -11,7 +11,7 @@ In this article I will show you how a Scheduled Trigger can be used to easily in
 
 Three example scheduled triggers are provided in this solution. Each trigger has an associated trigger function. The bulk of the work is handled by the **modifyCluster** function, which as the name implies is a generic function for making modifications to a cluster. It's a wrapper around the Atlas [Update Configuration of One Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/updateConfigurationOfOneCluster) Admin API.
 
-![Architecture](images/architecture.png )
+![Architecture](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/architecture.png )
 
 
 
@@ -27,7 +27,7 @@ In order to call the Atlas Administrative APIs, you'll first need an [API Key](h
 
 
 
-![Access Manager](images/access_manager.png )
+![Access Manager](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/access_manager.png )
 
 
 Then select the **API Keys** tab.
@@ -35,21 +35,21 @@ Then select the **API Keys** tab.
 Create a new key, giving it a good description. Assign the key **[Organization Owner](https://www.mongodb.com/docs/atlas/reference/user-roles/#Organization-Owner)** permissions, which will allow it to manage any of the projects in the organization. 
 
 
-![API Key](images/api_key.png )
+![API Key](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/api_key.png )
 
 
 Click **Next** and make a note of your Private Key:
 
-![Save API Key](images/save_api_key.png)
+![Save API Key](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/save_api_key.png)
 
 
 Let's limit who can use our API key by adding an access list. In our case, the API key is going to be used by a Trigger which is a component of Atlas App Services. You will find the list of IP addresses used by App Services in the documentation under [Firewall Configuration](https://www.mongodb.com/docs/atlas/app-services/security/?_ga=2.141120567.467587052.1654532140-1042404311.1621885569&_gac=1.123940344.1654536456.CjwKCAjwy_aUBhACEiwA2IHHQMNKPJhxelRKhOkjaFcX_en2YM5HUl6eDgj0T1jPp8LzU5SSyMT2vhoCuCYQAvD_BwE#firewall-configuration). Note, each IP address must be added individually. 
 
 
 
-![Add Access List Entry](images/add_access_list_entry.png )
+![Add Access List Entry](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/add_access_list_entry.png )
 
-![API Access List](images/api_access_list.png)
+![API Access List](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/api_access_list.png)
 
 
 Click **Done.**
@@ -62,7 +62,7 @@ Click **Done.**
 
 Since this solution works across your entire Atlas organization, I like to host it in its own dedicated Atlas Project.
 
-![Create a Project](images/create_a_project.png)
+![Create a Project](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/create_a_project.png)
 
 ## Create and Application
 
@@ -71,7 +71,7 @@ We will host our trigger in an [Atlas App Services](https://www.mongodb.com/docs
 
 
 
-![App Services](images/app_services.png)
+![App Services](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/app_services.png)
 
 
 You'll see that App Services offers a bunch of templates to get you started. For this use case, just select the first option to **Build your own App**:
@@ -81,14 +81,14 @@ You'll see that App Services offers a bunch of templates to get you started. For
 
 
 
-![Welcome to App Services](images/welcome_app_services.png )
+![Welcome to App Services](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/welcome_app_services.png )
 
 
 You'll then be presented with options to link a data source, name your application and choose a deployment model. The current iteration of this utility doesn't use a data source, so you can ignore that step (a free cluster for you regardless). You can also leave the [deployment model](https://www.mongodb.com/docs/atlas/app-services/manage-apps/deploy/deployment-models-and-regions/) at its default (global), unless you want to limit the application to a specific region. 
 
 I've named the application **Automation App**:
 
-![Welcome to App Services](images/welcome_app_services2.png)
+![Welcome to App Services](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/welcome_app_services2.png)
 
 
 From here, you have the option to simply import the Realm application and adjust any of the functions to fit your needs. If you prefer to build the application from scratch, skip to the next section.
@@ -108,7 +108,7 @@ Use the **Values** menu on the left to Create a Secret named **AtlasPrivateKeySe
 
 
 
-![Create Secret](images/create_secret.png )
+![Create Secret](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/create_secret.png )
 
 
 
@@ -142,7 +142,7 @@ Select the **App Settings** menu and copy your Application ID:
 
 
 
-![App ID](images/app_id.png )
+![App ID](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/app_id.png )
 
 
 
@@ -169,7 +169,7 @@ After the import, replace the `AtlasPublicKey' with your API public key value.
 
 
 
-![Atlas Public Key](images/atlas_public_key.png )
+![Atlas Public Key](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/atlas_public_key.png )
 
 
 
@@ -179,7 +179,7 @@ The imported application includes 3 self-explanatory sample scheduled [triggers]
  \
 
 
-![Triggers](images/triggers.png )
+![Triggers](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/triggers.png )
 
 
 The 3 triggers have 3 associated [Functions](https://www.mongodb.com/docs/atlas/app-services/functions/). The pauseClustersTrigger and resumeClustersTrigger function supply a set of projects and clusters to pause, so these need to be adjusted to fit your needs:
@@ -213,7 +213,7 @@ In addition, you'll find two utility functions, **getProjectClusters** and **get
 
 
 
-![Functions](images/functions.png )
+![Functions](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/functions.png )
 
 
 Now that you have reviewed the draft, as a final step go ahead and deploy the Realm application.
@@ -223,7 +223,7 @@ Now that you have reviewed the draft, as a final step go ahead and deploy the Re
 
 
 
-![Review Draft & Deploy](images/review_and_deploy.png )
+![Review Draft & Deploy](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/review_and_deploy.png )
 
 
 
@@ -244,7 +244,7 @@ You'll find **Values** under the BUILD menu:
 
 
 
-![Values](images/values.png )
+![Values](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/values.png )
 
 
 First, create a Value for your public key (_note, the key is in quotes_):
@@ -254,7 +254,7 @@ First, create a Value for your public key (_note, the key is in quotes_):
 
 
 
-![Atlas Public Key](images/atlas_public_key.png )
+![Atlas Public Key](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/atlas_public_key.png )
 
 
 Create a Secret containing your private key (the secret is not in quotes):
@@ -264,7 +264,7 @@ Create a Secret containing your private key (the secret is not in quotes):
 
 
 
-![Create Secret](images/create_secret.png )
+![Create Secret](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/create_secret.png )
 
 The Secret cannot be accessed directly, so create a second Value that links to the secret:
 
@@ -273,7 +273,7 @@ The Secret cannot be accessed directly, so create a second Value that links to t
 
 
 
-![Link to Secret](images/link_to_secret.png )
+![Link to Secret](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/link_to_secret.png )
 
 
 
@@ -285,7 +285,7 @@ We need to note the IDs of the projects that have clusters we want to automate. 
 
 
 
-![Project Settings](images/project_settings.png )
+![Project Settings](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/project_settings.png )
 
 
 Under which you’ll find your Project ID:
@@ -294,7 +294,7 @@ Under which you’ll find your Project ID:
 
 
 
-![Project ID](images/project_id.png )
+![Project ID](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/project_id.png )
 
 
 
@@ -309,7 +309,7 @@ You'll find Functions under the BUILD menu: \
 
 
 
-![Functions](images/functions_menu.png )
+![Functions](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/functions_menu.png )
 
 
 
@@ -325,7 +325,7 @@ Create a New Function named **modifyCluster**. Set the function to Private as it
 
 
 
-![Modify Cluster Function](images/modify_cluster_function.png)
+![Modify Cluster Function](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/modify_cluster_function.png)
 
 
 Switch to the Function Editor tab and paste the following code:
@@ -376,7 +376,7 @@ By default, the Console supplies ‘Hello world!’ with test running a function
 
 
 
-![Console](images/console.png)
+![Console](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/console.png)
 
 
 
@@ -399,7 +399,7 @@ Press the **Run** button to see the results, which will appear in the Result win
 
 
 
-![Run](images/run.png )
+![Run](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/run.png )
 
 
 And you should find you cluster being resumed (or paused):
@@ -409,7 +409,7 @@ And you should find you cluster being resumed (or paused):
 
 
 
-![Cluster](images/cluster.png )
+![Cluster](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/cluster.png )
 
 
 
@@ -461,7 +461,7 @@ The ability to pause and resume a cluster is supported by the [Update Configurat
 
 
 
-![Triggers Menu](images/triggers_menu.png )
+![Triggers Menu](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/triggers_menu.png )
 
 
 And add a trigger.
@@ -474,7 +474,7 @@ Set the Trigger Type to **Scheduled **and the name to **pauseClusters**: \
 
 
 
-![Add Trigger](images/add_trigger.png )
+![Add Trigger](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/add_trigger.png )
 
 
 As for the schedule, you have the full power of [CRON Expressions](https://www.mongodb.com/docs/atlas/app-services/triggers/scheduled-triggers/) at your fingertips. For this exercise, let’s assume we want to pause the cluster every evening at 6pm. Select **Advanced** and set the CRON schedule to **0 22 * * ***. _Note, the time is in GMT, so adjust accordingly for your timezone. As this cluster is running in US East, I’m going to add 4 hours:_ \
@@ -482,7 +482,7 @@ As for the schedule, you have the full power of [CRON Expressions](https://www.m
 
 
 
-![Schedule Type](images/schedule_type.png )
+![Schedule Type](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/schedule_type.png )
 
 
 Check the Next Events window to validate the job will run when you desire. \
@@ -493,14 +493,14 @@ The final step is to select the function for the trigger to execute. Select the 
 
 
 
-![Trigger Function](images/linked_function.png )
+![Trigger Function](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/linked_function.png )
 
 
 And **Save** the trigger.
 
 The final step is to **REVIEW DRAFT & DEPLOY**. 
 
-![Review Draft & Deploy](images/review_and_deploy.png )
+![Review Draft & Deploy](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/review_and_deploy.png )
 
 
 
@@ -515,7 +515,7 @@ Duplicate the pauseClustersTrigger function to a new function named **resumeClus
 
 
 
-![Duplicate Function](images/duplicate_function.png )
+![Duplicate Function](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/duplicate_function.png )
 
 
 At a minimum, edit the function code setting **paused** to **false**. You could also adjust the projectIDs and clusterNames to a subset of projects to resume:
@@ -558,7 +558,7 @@ Then add a new scheduled trigger named **resumeClusters**. Set the CRON schedule
 
 
 
-![Schedule Type Resume](images/schedule_type_resume.png )
+![Schedule Type Resume](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/schedule_type_resume.png )
 
 
 
