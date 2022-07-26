@@ -1,188 +1,440 @@
+<!-- Output copied to clipboard! -->
+
+<!-----
+
+You have some errors, warnings, or alerts. If you are using reckless mode, turn it off to see inline alerts.
+* ERRORs: 0
+* WARNINGs: 0
+* ALERTS: 35
+
+Conversion time: 6.091 seconds.
+
+
+Using this Markdown file:
+
+1. Paste this output into your source file.
+2. See the notes and action items below regarding this conversion run.
+3. Check the rendered output (headings, lists, code blocks, tables) for proper
+   formatting and use a linkchecker before you publish this page.
+
+Conversion notes:
+
+* Docs to Markdown version 1.0β33
+* Tue Jul 26 2022 11:14:01 GMT-0700 (PDT)
+* Source doc: Atlas Cluster Automation Using Scheduled Triggers
+* Tables are currently converted to HTML tables.
+* This document has images: check for >>>>>  gd2md-html alert:  inline image link in generated source and store images to your server. NOTE: Images in exported zip file from Google Docs may not appear in  the same order as they do in your doc. Please check the images!
+
+
+WARNING:
+You have 8 H1 headings. You may want to use the "H1 -> H2" option to demote all headings by one level.
+
+----->
+
+
+<p style="color: red; font-weight: bold">>>>>>  gd2md-html alert:  ERRORs: 0; WARNINGs: 1; ALERTS: 35.</p>
+<ul style="color: red; font-weight: bold"><li>See top comment block for details on ERRORs and WARNINGs. <li>In the converted Markdown or HTML, search for inline alerts that start with >>>>>  gd2md-html alert:  for specific instances that need correction.</ul>
+
+<p style="color: red; font-weight: bold">Links to alert messages:</p><a href="#gdcalert1">alert1</a>
+<a href="#gdcalert2">alert2</a>
+<a href="#gdcalert3">alert3</a>
+<a href="#gdcalert4">alert4</a>
+<a href="#gdcalert5">alert5</a>
+<a href="#gdcalert6">alert6</a>
+<a href="#gdcalert7">alert7</a>
+<a href="#gdcalert8">alert8</a>
+<a href="#gdcalert9">alert9</a>
+<a href="#gdcalert10">alert10</a>
+<a href="#gdcalert11">alert11</a>
+<a href="#gdcalert12">alert12</a>
+<a href="#gdcalert13">alert13</a>
+<a href="#gdcalert14">alert14</a>
+<a href="#gdcalert15">alert15</a>
+<a href="#gdcalert16">alert16</a>
+<a href="#gdcalert17">alert17</a>
+<a href="#gdcalert18">alert18</a>
+<a href="#gdcalert19">alert19</a>
+<a href="#gdcalert20">alert20</a>
+<a href="#gdcalert21">alert21</a>
+<a href="#gdcalert22">alert22</a>
+<a href="#gdcalert23">alert23</a>
+<a href="#gdcalert24">alert24</a>
+<a href="#gdcalert25">alert25</a>
+<a href="#gdcalert26">alert26</a>
+<a href="#gdcalert27">alert27</a>
+<a href="#gdcalert28">alert28</a>
+<a href="#gdcalert29">alert29</a>
+<a href="#gdcalert30">alert30</a>
+<a href="#gdcalert31">alert31</a>
+<a href="#gdcalert32">alert32</a>
+<a href="#gdcalert33">alert33</a>
+<a href="#gdcalert34">alert34</a>
+<a href="#gdcalert35">alert35</a>
+
+<p style="color: red; font-weight: bold">>>>>> PLEASE check and correct alert issues and delete this message and the inline alerts.<hr></p>
+
+
+
 # Atlas Cluster Automation Using Scheduled Triggers
 
-Every action you can take in the Atlas user interface is backed by a corresponding [REST API](https://docs.atlas.mongodb.com/reference/api-resources/), which allows you to easily bring automation to your Atlas deployments. Some of the more common forms of Atlas automation occur on a schedule, such as pausing a cluster that’s only used for testing in the evenings and resuming the cluster again in the morning.
+Every action you can take in the Atlas user interface is backed by a corresponding [Administration API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/), which allows you to easily bring automation to your Atlas deployments. Some of the more common forms of Atlas automation occur on a schedule, such as pausing a cluster that’s only used for testing in the evening and resuming the cluster again in the morning.
 
-Having an API to automate Atlas actions is great, but you’re still on the hook for writing the script that calls the API, finding a place to host the script, and setting up the job to call the script on your desired schedule. This is where Atlas [Scheduled Triggers](https://docs.atlas.mongodb.com/triggers/#scheduled-triggers) come to the rescue.
+Having an API to automate Atlas actions is great, but you’re still on the hook for writing the script that calls the API, finding a place to host the script, and setting up the job to call the script on your desired schedule. This is where Atlas [Scheduled Triggers](https://www.mongodb.com/docs/atlas/triggers/#scheduled-triggers) come to the rescue.
 
-In this article I will show you how a Scheduled Trigger can be used to easily incorporate automation into your environment. In addition to pausing and unpausing a cluster, I’ll similarly show how cluster scale up and down events could also be placed on a schedule. Both of these activities allow you to save costs for when you either don’t need the cluster (paused), or don’t need it to support peak workloads (scale down).
-
-
-## Preparation
+In this article I will show you how a Scheduled Trigger can be used to easily incorporate automation into your environment. In addition to pausing and unpausing a cluster, I’ll similarly show how cluster scale up and down events could also be placed on a schedule. Both of these activities allow you to save on costs for when you either don’t need the cluster (paused), or don’t need it to support peak workloads (scale down).
 
 
-### Identify Trigger Host Cluster
+# Architecture
 
-Atlas triggers do not fire when their associated cluster is paused, so the trigger needs to be linked to a cluster that never pauses. Fortunately, Atlas supports a forever free sandbox cluster (M0). If you don’t have a cluster you can use that will never be paused (such as a production cluster), create an M0 cluster to use for this exercise. Please note that you can only have one M0 cluster per project.
+Three example scheduled triggers are provided in this solution. Each trigger has an associated trigger function. The bulk of the work is handled by the **modifyCluster** function, which as the name implies is a generic function for making modifications to a cluster. It's a wrapper around the Atlas [Update Configuration of One Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/updateConfigurationOfOneCluster) Admin API.
 
-
-### Note the Project ID
-
-We’ll need to pass the project ID as a path parameter in our API calls. Click the 3 dots in the upper left corner of the UI to open the Project Settings:
+![Architecture](images/architecture.png )
 
 
-![MongoDB Atlas Settings Menu](images/project_settings.png "MongoDB Atlas Settings Menu")
+
+# Preparation
+
+
+## Generate an API Key
+
+In order to call the Atlas Administrative APIs, you'll first need an [API Key](https://www.mongodb.com/docs/atlas/configure-api-access/) with the 
+
+[Organization Owner](https://www.mongodb.com/docs/atlas/reference/user-roles/#Organization-Owner) role. API Keys are created in the Access Manager. At the Organization level (not the Project level), select **Access Manager **from the menu on the left: \
+
+
+
+
+![Access Manager](images/access_manager.png )
+
+
+Then select the **API Keys** tab.
+
+Create a new key, giving it a good description. Assign the key **[Organization Owner](https://www.mongodb.com/docs/atlas/reference/user-roles/#Organization-Owner)** permissions, which will allow it to manage any of the projects in the organization. 
+
+
+![API Key](images/api_key.png )
+
+
+Click **Next** and make a note of your Private Key:
+
+![Save API Key](images/save_api_key.png)
+
+
+Let's limit who can use our API key by adding an access list. In our case, the API key is going to be used by a Trigger which is a component of Atlas App Services. You will find the list of IP addresses used by App Services in the documentation under [Firewall Configuration](https://www.mongodb.com/docs/atlas/app-services/security/?_ga=2.141120567.467587052.1654532140-1042404311.1621885569&_gac=1.123940344.1654536456.CjwKCAjwy_aUBhACEiwA2IHHQMNKPJhxelRKhOkjaFcX_en2YM5HUl6eDgj0T1jPp8LzU5SSyMT2vhoCuCYQAvD_BwE#firewall-configuration). Note, each IP address must be added individually. 
+
+
+
+<p id="gdcalert5" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image5.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert6">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
+
+
+![Add Access List Entry](images/add_access_list_entry.png )
+
+![API Access List](images/api_access_list.png)
+
+
+Click **Done.**
+
+
+# Deployment
+
+
+## Create a Project for Automation
+
+Since this solution works across your entire Atlas organization, I like to host it in its own dedicated Atlas Project.
+
+![Create a Project](images/create_a_project.png)
+
+## Create and Application
+
+We will host our trigger in an [Atlas App Services](https://www.mongodb.com/docs/atlas/app-services/) Application. To begin, just click the App Services tab: \
+ \
+
+
+
+![App Services](images/app_services.png)
+
+
+You'll see that App Services offers a bunch of templates to get you started. For this use case, just select the first option to **Build your own App**:
+
+
+
+
+
+
+![Welcome to App Services](images/welcome_app_services.png )
+
+
+You'll then be presented with options to link a data source, name your application and choose a deployment model. The current iteration of this utility doesn't use a data source, so you can ignore that step (a free cluster for you regardless). You can also leave the [deployment model](https://www.mongodb.com/docs/atlas/app-services/manage-apps/deploy/deployment-models-and-regions/) at its default (global), unless you want to limit the application to a specific region. 
+
+I've named the application **Automation App**:
+
+
+
+<p id="gdcalert10" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image10.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert11">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
+
+
+![Welcome to App Services](images/welcome_app_services2.png)
+
+
+From here, you have the option to simply import the Realm application and adjust any of the functions to fit your needs. If you prefer to build the application from scratch, skip to the next section.
+
+
+# Import Option
+
+
+## Step 1: Store the API Secret Key
+
+The extract has a dependency on the API Secret Key, thus the import will fail if it is not configured beforehand.
+
+Use the **Values** menu on the left to Create a Secret named **AtlasPrivateKeySecret** containing your private key (the secret is not in quotes): \
+
+
+
+
+
+
+![Create Secret](images/create_secret.png )
+
+
+
+## Step 2: Install the Realm CLI
+
+The Realm CLI is available on npm. To install the Realm CLI on your system, ensure that you have [Node.js](https://nodejs.org/en/download/) installed and then run the following command in your shell:
+
+**npm install -g mongodb-realm-cli**
+
+
+## Step 3: Extract the Application Archive
+
+[Download](https://github.com/wbleonard/atlas_cluster_automation/blob/master/export/AutomationApp.zip?raw=true) and extract the AutomationApp.zip.
+
+
+## Step 4: Log into Atlas
+
+To configure your app with realm-cli, you must log in to Atlas using your API keys:
+
+✗ realm-cli login --api-key="&lt;Public API Key>" --private-api-key="&lt;Private API Key>"
+
+Successfully logged in
+
+
+## Step 5: Get the Realm Application ID
+
+Select the **App Settings** menu and copy your Application ID:
+
+
+
+
+
+
+![App ID](images/app_id.png )
+
+
+
+## Step 6: Import the Application
+
+Run the following realm-cli push command from the directory where you extracted the export:
+
+realm-cli push --remote="&lt;Your App ID>"
+
+...
+
+A summary of changes
+
+...
+
+
+
+Please confirm the changes shown above Yes
+
+
+<p id="gdcalert13" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: Definition term(s) &uarr;&uarr; missing definition? </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert14">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
+
+
+
+
+
+
+Creating draft
+
+Pushing changes
+
+Deploying draft
+
+Deployment complete
+
+Successfully pushed app up:
+
+After the import, replace the `AtlasPublicKey' with your API public key value.
+
+
+
+
+
+
+![Atlas Public Key](images/atlas_public_key.png )
+
+
+
+## Review the Imported Application
+
+The imported application includes 3 self-explanatory sample scheduled [triggers](https://www.mongodb.com/docs/atlas/app-services/triggers/scheduled-triggers/): \
+ \
+
+
+![Triggers](images/triggers.png )
+
+
+The 3 triggers have 3 associated [Functions](https://www.mongodb.com/docs/atlas/app-services/functions/). The pauseClustersTrigger and resumeClustersTrigger function supply a set of projects and clusters to pause, so these need to be adjusted to fit your needs:
+
+
+```
+ // Supply projectIDs and clusterNames...
+  const projectIDs =[
+  {
+    id: '5c5db514c56c983b7e4a8701',
+    names: [
+      'Demo',
+      'Demo2'
+    ]
+  },
+  {
+    id: '62d05595f08bd53924fa3634',
+    names: [
+      'ShardedMultiRegion'
+    ]
+  }
+];
+```
+
+
+All 3 trigger functions call the **modifyCluster** function, where the bulk of the work is done.
+
+In addition, you'll find two utility functions, **getProjectClusters** and **getProjects**. These functions are not utilized in this solution, but are provided for reference if you wanted to further automate these processes (that is, removing the hard coded project IDs and cluster names in the trigger functions):
+
+
+
+
+
+![Functions](images/functions.png )
+
+
+Now that you have reviewed the draft, as a final step go ahead and deploy the Realm application.
+
+
+
+
+
+
+![Review Draft & Deploy](images/review_and_deploy.png )
+
+
+
+# Build it Yourself Option
+
+To understand what's included in the application, here are the steps to build it yourself from scratch.
+
+
+## Step 1: Store the API Keys
+
+The functions we need to create will call the [Atlas Administration APIs](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/), so we need to store our API Public and Private Keys, which we will do using [Values & Secrets](https://www.mongodb.com/docs/atlas/app-services/values-and-secrets/). The sample code I provide references these values as AtlasPublicKey and AtlasPrivateKey, so use those same names unless you want to change the code where they’re referenced.
+
+You'll find **Values** under the BUILD menu:
+
+
+## 
+
+
+
+
+![Values](images/values.png )
+
+
+First, create a Value for your public key (_note, the key is in quotes_):
+
+
+
+
+
+
+![Atlas Public Key](images/atlas_public_key.png )
+
+
+Create a Secret containing your private key (the secret is not in quotes):
+
+
+
+
+
+
+![Create Secret](images/create_secret.png )
+
+The Secret cannot be accessed directly, so create a second Value that links to the secret:
+
+
+
+
+
+
+![Link to Secret](images/link_to_secret.png )
+
+
+
+## Step 2: Note the Project ID(s)
+
+We need to note the IDs of the projects that have clusters we want to automate. Click the 3 dots in the upper left corner of the UI to open the Project Settings:
+
+
+
+
+
+![Project Settings](images/project_settings.png )
 
 
 Under which you’ll find your Project ID:
 
-![Project ID](images/project_id.png "Project ID") 
 
 
-### Generate an API Key
-
-Even if you already have an [API Key](https://docs.atlas.mongodb.com/configure-api-access/), it’s good to generate a new one for this use case so we can easily identify that the API was called by the Atlas Trigger. 
-
-At the Organization level (not the Project level), select **Access Manager** from the menu on the left: 
-
-![Access Manager](images/access_manager.png "Access Manager")
-
-Then select the **API Keys** tab:
-
-![API Key Information](images/api_key.png "API Key Information")
-
-Click **Next** and make a note of your Private Key:
-
-![API Key Information](images/private_key.png "API Key Information")
-
-Let’s next [whitelist](https://docs.atlas.mongodb.com/configure-api-access/#enable-api-whitelisting-for-your-organization) the IPs of the Realm servers that will be using our key. Click **Add Whitelist Entry** and add the following IPs:
-
-```
-18.211.240.224
-18.210.66.32
-18.213.24.164
-54.69.74.169
-54.203.157.107
-18.202.2.23
-54.76.145.131
-52.63.26.53
-13.236.189.10
-```
-
-![API Key Whitelist](images/api_whitelist.png "API Key Whitelist")
-
-## Create Trigger: Scheduled Pause
-
-The ability to pause and resume a cluster is supported by the [Modify Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-modify-one/) API. To begin, select **Triggers** from the menu on the left: 
-
-![Triggers Menu](images/triggers.png "Triggers Menu")
-
-And add a trigger.
-
-Set the Trigger Type to **Scheduled** and the name to **pauseClusters**:
-
-![Add Trigger](images/trigger_name.png "Add Trigger")
-
-As for the schedule, you have the full power of [CRON Expressions](https://docs.mongodb.com/stitch/triggers/cron-expressions/) at your fingertips. For this exercise, let’s assume we want to pause the cluster every evening at 6pm. Select **Advanced** and set the CRON schedule to **`0 23 * * *`**. _Note, the time is in GMT, so adjust accordingly for your timezone. As this cluster is running in US East, I’m going to add 5 hours:_ 
 
 
-![Schedule Type](images/schedule.png "Schedule Type")
+![Project ID](images/project_id.png )
 
 
-Check the Next Events window to validate the job will run when you desire. \
+
+## Step 3: Create the Functions
+
+I will create two functions, a generic function to modify a cluster and a trigger function to iterate over the clusters to be paused. 
+
+You'll find Functions under the BUILD menu: \
  \
-The next step is to link the trigger to the cluster, and it’s important to link to the cluster we identified above that will always be running. I created a M0 cluster called Automation for this purpose:
-
-![Link Cluster](images/link_cluster.png "Link Cluster")
-
-Once the cluster is linked for the first trigger, the cluster will not need to be re-linked for additional triggers created in the same project.
-
-Finally, we need to provide the function that will run when the trigger fires. Replace the provided function code with the following, filling in the value for your `projectID` and `clusterNames`. Note the function as written can pause multiple clusters, providing the cluster names as an array:
 
 
-```javascript
-exports = async function() {
-  
-  // Supply projectID and clusterNames...
-  const projectID = '<Project ID>';
-  const clusterNames = ['<Cluster Name>', '<Cluster Name>'];
-
-  // Get stored credentials...
-  const username = context.values.get("AtlasPublicKey");
-  const password = context.values.get("AtlasPrivateKey");
-
-  // Set desired state...
-  const body = {paused: true};
-
-  var result = "";
-  
-  clusterNames.forEach(async function (name) {
-    result = await context.functions.execute('modifyCluster', username, password, projectID, name, body)
-    console.log("Cluster " + name + ": " + EJSON.stringify(result));
-    
-    if (result.error) { 
-      return result;
-    }
-  })
 
 
-  return clusterNames.length + " clusters paused"; 
-};
+
+![Functions](images/functions_menu.png )
+
+
+
+## modifyCluster
+
+I’m only demonstrating a couple of things you can do with cluster automation, but the sky is really limitless. The following modifyCluster function is a generic wrapper around the [Update Configuration of One Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/updateConfigurationOfOneCluster) API for calling the API from App Services (or Node.js for that matter). 
+
+Create a New Function named **modifyCluster**. Set the function to Private as it will only be called by our trigger. The other default settings are fine:
+
+ 
+
+
+
+
+
+![Modify Cluster Function](images/modify_cluster_function.png)
+
+
+Switch to the Function Editor tab and paste the following code:
+
+
 ```
-
-
-And **Save** the trigger.
-
-If you attempt to run the trigger, it will fail because it’s looking up values and calling a wrapper function, **modifyCluster**, we haven’t written yet. Let’s implement them now...
-
-
-## Supply Atlas Credentials and Implement modifyCluster
-
-When we created the Atlas Trigger, behind the scenes, a Realm application was created to run the trigger. It’s in that application where we’ll host our Atlas credentials and modifyCluster function.
-
-Select **Realm** from the menu on the top: 
-
-
-![Realm Menu](images/realm.png "Realm Menu")
-
-
-And you’ll find a **Triggers_RealmApp** has been created for us: 
-
-
-![Realm App](images/realm_app.png "Realm App")
-
-
-Click the **Triggers_RealmApp** to open the application.
-
-
-### Atlas Credentials
-
-Our Atlas Trigger references two values that represent our Atlas credentials, the **`AtlasPublicKey`** and **`AtlasPrivateKey`**. Here’s where we’ll supply those values to the trigger.
-
-Select **Values & Secrets** from the menu on the left: 
-
-![Values & Secrets Menu](images/values_secrets.png "Values & Secrets Menu")
-
-Click the **Create New Value** button.
-
-Set the Value Name to **AtlasPublicKey** and enter your public key value you generated earlier, enclosed in quotes: 
-
-![New Value](images/new_value.png "New Value")
-
-Click **Save**.
-
-Add a second Value named **AtlasPrivateKey**, this time of type **Secret**: 
-
-![](images/new_value_secret.png)
-
-Click **Save**.
-
-### modifyCluster Function
-
-I’m only demonstrating a couple of things you can do with cluster automation, but the sky is really limitless. The following `modifyCluster` function is a generic wrapper around the [Modify Cluster](https://docs.atlas.mongodb.com/reference/api/clusters-modify-one/) API for calling the API from Realm (or Node.js for that matter). 
-
-Open the app and select **Functions** from the menu on the left: 
-
-![Functions Menu](images/functions.png "Functions Menu")
-
-
-Click the **Create New Function** button. Name the function **modifyCluster**:
-
-![Function Settings](images/function_name.png "Function Settings")
-
-Leave the other fields at their defaults and click **Save** to open the Function Editor. Paste the following code into the editor:
-
-
-```JavaScript
 /*
  * Modifies the cluster as defined by the body parameter. 
  * See https://docs.atlas.mongodb.com/reference/api/clusters-modify-one/
@@ -190,6 +442,15 @@ Leave the other fields at their defaults and click **Save** to open the Function
  */
 exports = async function(username, password, projectID, clusterName, body) {
   
+  // Easy testing from the console
+  if (username == "Hello world!") { 
+    username = await context.values.get("AtlasPublicKey");
+    password = await context.values.get("AtlasPrivateKey");
+    projectID = "5c5db514c56c983b7e4a8701";
+    clusterName = "Demo";
+    body = {paused: false}
+  }
+
   const arg = { 
     scheme: 'https', 
     host: 'cloud.mongodb.com', 
@@ -209,48 +470,168 @@ exports = async function(username, password, projectID, clusterName, body) {
 ```
 
 
-As stated above, this is simply a generic wrapper around the modify cluster API. **Save** the function then click **REVIEW & DEPLOY CHANGES**: 
+To test this function, you need to supply an API key, an API secret, a project Id, an associated cluster name to modify, and a payload containing the modifications you'd like to make. In our case it's simply setting the paused property.
 
-![Review & Deploy Changes](images/review.png "Review & Deploy Changes")
-
-
-## Test the Trigger
-
-Click the **Atlas** tab to return to Atlas: 
-
-![Atlas Menu](images/atlas.png "Atlas Menu")
+By default, the Console supplies ‘Hello world!’ with test running a function, so my function code tests for that input and provides some default values for easy testing. 
 
 
-Open your **pauseClusters** trigger and click **Run** to test it. You should see output similar to the following: 
-
-![Run Output](images/test.png "Run Output")
 
 
-More importantly, you should see your cluster entering a paused state:
-
-![Deploying Changes](images/deploying.png "Deploying Changes")
 
 
-![Paused Cluster](images/paused.png "Paused Cluster")
- 
-## Resume the Cluster
+![Console](images/console.png)
+
+
+
+```
+  // Easy testing from the console
+  if (username == "Hello world!") { 
+    username = await context.values.get("AtlasPublicKey");
+    password = await context.values.get("AtlasPrivateKey");
+    projectID = "5c5db514c56c983b7e4a8701";
+    clusterName = "Demo";
+    body = {paused: false}
+  }
+```
+
+
+Press the **Run** button to see the results, which will appear in the Result window:
+
+
+
+
+
+
+![Run](images/run.png )
+
+
+And you should find you cluster being resumed (or paused):
+
+
+
+
+
+
+![Cluster](images/cluster.png )
+
+
+
+## pauseClustersTrigger
+
+This function will be called by a trigger. As it's not possible to pass parameters to a scheduled trigger, it uses a hard-coded list of project Ids and associated cluster names to pause. Ideally these values would be stored in a collection with a nice UI to manage all of this, but that's a job for another day :-).
+
+_In the appendix of this article, I provide functions that will get all projects and clusters in the organization. That would create a truly dynamic operation that would pause all clusters. You could then alternatively refactor the code to use an exclude list instead of an allow list._
+
+
+```
+/*
+ * Iterates over the provided projects and clusters, pausing those clusters
+ */
+exports = async function() {
+  
+  // Supply projectIDs and clusterNames...
+  const projectIDs = [{id:'5c5db514c56c983b7e4a8701', names:['Demo', 'Demo2']}, {id:'62d05595f08bd53924fa3634', names:['ShardedMultiRegion']}];
+
+  // Get stored credentials...
+  const username = context.values.get("AtlasPublicKey");
+  const password = context.values.get("AtlasPrivateKey");
+
+  // Set desired state...
+  const body = {paused: true};
+
+  var result = "";
+  
+  projectIDs.forEach(async function (project) {
+    
+    project.names.forEach(async function (cluster) {
+      result = await context.functions.execute('modifyCluster', username, password, project.id, cluster, body);
+      console.log("Cluster " + cluster + ": " + EJSON.stringify(result));
+    });
+  });
+  
+  return "Clusters Paused";
+};
+```
+
+
+
+## Step 4: Create Trigger - pauseClusters
+
+The ability to pause and resume a cluster is supported by the [Update Configuration of One Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/updateConfigurationOfOneCluster) API. To begin, select Triggers from the menu on the left: \
+ \
+
+
+
+
+
+![Triggers Menu](images/triggers_menu.png )
+
+
+And add a trigger.
+
+Set the Trigger Type to **Scheduled **and the name to **pauseClusters**: \
+
+
+
+
+
+
+
+![Add Trigger](images/add_trigger.png )
+
+
+As for the schedule, you have the full power of [CRON Expressions](https://www.mongodb.com/docs/atlas/app-services/triggers/scheduled-triggers/) at your fingertips. For this exercise, let’s assume we want to pause the cluster every evening at 6pm. Select **Advanced** and set the CRON schedule to **0 22 * * ***. _Note, the time is in GMT, so adjust accordingly for your timezone. As this cluster is running in US East, I’m going to add 4 hours:_ \
+ \
+
+
+
+![Schedule Type](images/schedule_type.png )
+
+
+Check the Next Events window to validate the job will run when you desire. \
+ \
+The final step is to select the function for the trigger to execute. Select the **pauseClustersTrigger** function.
+
+
+
+
+
+![Trigger Function](images/linked_function.png )
+
+
+And **Save** the trigger.
+
+The final step is to **REVIEW DRAFT & DEPLOY**. 
+
+![Review Draft & Deploy](images/review_and_deploy.png )
+
+
+
+# Resume the Cluster
 
 You could opt to manually resume the cluster(s) as it’s needed. But for completeness, let’s assume we want the cluster(s) to automatically resume at 8am US East every weekday morning. 
 
-Add a new Atlas scheduled trigger named **resumeClusters**. Set the CRON schedule to: `0 13 * * 1-5`. The Next Events validates for us this is exactly what we want: 
-
-![Schedule Type](images/resume_schedule.png "Schedule Type")
+Duplicate the pauseClustersTrigger function to a new function named **resumeClustersTriggger**
 
 
-The function code is almost identical to **pauseCluster**. We simply set paused to **false** and update our return statement to indicate clusters were resumed:
 
 
-```javascript
+
+
+![Duplicate Function](images/duplicate_function.png )
+
+
+At a minimum, edit the function code setting **paused** to **false**. You could also adjust the projectIDs and clusterNames to a subset of projects to resume:
+
+
+```
+/*
+ * Iterates over the provided projects and clusters, resuming those clusters
+ */
 exports = async function() {
   
-  // Supply projectID and clusterNames...
-  const projectID = '<Project ID>';
-  const clusterNames = ['<Cluster Name>', '<Cluster Name>'];
+  // Supply projectIDs and clusterNames...
+  const projectIDs = [{id:'5c5db514c56c983b7e4a8701', names:['Demo', 'Demo2']}, {id:'62d05595f08bd53924fa3634', names:['ShardedMultiRegion']}];
 
   // Get stored credentials...
   const username = context.values.get("AtlasPublicKey");
@@ -261,47 +642,50 @@ exports = async function() {
 
   var result = "";
   
-  clusterNames.forEach(async function (name) {
-    result = await context.functions.execute('modifyCluster', username, password, projectID, name, body)
-    console.log("Cluster " + name + ": " + EJSON.stringify(result));
+  projectIDs.forEach(async function (project) {
     
-    if (result.error) { 
-      return result;
-    }
-  })
-
-
-  return clusterNames.length + " clusters resumed"; 
+    project.names.forEach(async function (cluster) {
+      result = await context.functions.execute('modifyCluster', username, password, project.id, cluster, body);
+      console.log("Cluster " + cluster + ": " + EJSON.stringify(result));
+    });
+  });
+  
+  return "Clusters Paused";
 };
 ```
 
 
+Then add a new scheduled trigger named **resumeClusters**. Set the CRON schedule to: **0 12 * * 1-5**. The Next Events validates for us this is exactly what we want: \
+ \
 
-## Create Trigger: Scaling Up and Down
+
+
+
+![Schedule Type Resume](images/schedule_type_resume.png )
+
+
+
+# Create Trigger: Scaling Up and Down
 
 It’s not uncommon to have workloads that are more demanding during certain hours of the day or days of the week. Rather than running your cluster to support peak capacity, you can use this same approach to schedule your cluster to scale up and down as your workload requires it. 
 
 
-<div class="callout">
-
-Note: Atlas Clusters already support [Auto-Scaling](https://docs.atlas.mongodb.com/cluster-autoscaling/), which may very well suit your needs. The approach described here will let you definitively control when your cluster scales up and down.
-
-</div>
+```
+Note: Atlas Clusters already support Auto-Scaling, which may very well suit your needs. The approach described here will let you definitively control when your cluster scales up and down.
+```
 
 
 Let’s say we want to scale up our cluster every day at 9am before our store opens for business.
 
-Add a new Atlas scheduled trigger named **scaleClusterUp**. Set the CRON schedule to: **`0 14 * * *`**. 
-
-Here’s the function code. It’s very similar to before, except the body’s been changed to alter the provider settings:
+Add a new function named **scaleClusterUpTrigger**. Here’s the function code. It’s very similar to before, except the body’s been changed to alter the provider settings:
 
 
-```javascript
+```
 exports = async function() {
   
   // Supply projectID and clusterNames...
   const projectID = '<Project ID>';
-  const clusterName = <Cluster Name>;
+  const clusterName = '<Cluster Name>';
 
   // Get stored credentials...
   const username = context.values.get("AtlasPublicKey");
@@ -327,6 +711,107 @@ exports = async function() {
 ```
 
 
+Then add a scheduled trigger named **scaleClusterUp**. Set the CRON schedule to: **0 13 * * ***. 
+
 Scaling a cluster back down would simply be another trigger, scheduled to run when you want, using the same code above, setting the **instanceSizeName** to whatever you desire.
 
-And that’s it. I hope you find this beneficial. You should be able to use the techniques described here to easily call any MongoDB Atlas API from Realm.
+And that’s it. I hope you find this beneficial. You should be able to use the techniques described here to easily call any MongoDB Atlas Admin API endpoint from Atlas App Services.
+
+
+# Appendix \
+getProjects
+
+This standalone function can be test run from the App Services console to see the list of all the projects in your organization. You could also call it from other functions to get a list of projects:
+
+
+```
+/*
+ * Returns an array of the projects in the organization
+ * See https://docs.atlas.mongodb.com/reference/api/project-get-all/
+ *
+ * Returns an array of objects, e.g.
+ *
+ * {
+ * "clusterCount": {
+ *      "$numberInt": "1"
+ *    },
+ *    "created": "2021-05-11T18:24:48Z",
+ *    "id": "609acbef1b76b53fcd37c8e1",
+ *    "links": [
+ *      {
+ *        "href": "https://cloud.mongodb.com/api/atlas/v1.0/groups/609acbef1b76b53fcd37c8e1",
+ *        "rel": "self"
+ *      }
+ *    ],
+ *    "name": "mg-training-sample",
+ *    "orgId": "5b4e2d803b34b965050f1835"
+ *  }
+  *
+ */
+exports = async function() {
+  
+  // Get stored credentials...
+  const username = await context.values.get("AtlasPublicKey");
+  const password = await context.values.get("AtlasPrivateKey");
+  
+  const arg = { 
+    scheme: 'https', 
+    host: 'cloud.mongodb.com', 
+    path: 'api/atlas/v1.0/groups', 
+    username: username, 
+    password: password,
+    headers: {'Content-Type': ['application/json'], 'Accept-Encoding': ['bzip, deflate']}, 
+    digestAuth:true,
+  };
+  
+  // The response body is a BSON.Binary object. Parse it and return.
+  response = await context.http.get(arg);
+
+  return EJSON.parse(response.body.text()).results; 
+};
+```
+
+
+
+## getProjectClusters
+
+Another example function that will return the cluster details for a provided project.
+
+_To test this function, you need to supply a projectId. By default, the Console supplies ‘Hello world!’, so I test for that input and provide some default values for easy testing._
+
+
+```
+/*
+ * Returns an array of the clusters for the supplied project ID.
+ * See https://docs.atlas.mongodb.com/reference/api/clusters-get-all/
+ *
+ * Returns an array of objects. See the API documentation for details.
+ * 
+ */
+exports = async function(project_id) {
+  
+  if (project_id == "Hello world!") { // Easy testing from the console
+    project_id = "5e8f8268d896f55ac04969a1"
+  }
+  
+  // Get stored credentials...
+  const username = await context.values.get("AtlasPublicKey");
+  const password = await context.values.get("AtlasPrivateKey");
+  
+  const arg = { 
+    scheme: 'https', 
+    host: 'cloud.mongodb.com', 
+    path: `api/atlas/v1.0/groups/${project_id}/clusters`, 
+    username: username, 
+    password: password,
+    headers: {'Content-Type': ['application/json'], 'Accept-Encoding': ['bzip, deflate']}, 
+    digestAuth:true,
+  };
+  
+  // The response body is a BSON.Binary object. Parse it and return.
+  response = await context.http.get(arg);
+
+  return EJSON.parse(response.body.text()).results; 
+};
+```
+
