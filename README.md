@@ -34,7 +34,7 @@ Click **Next** and make a note of your Private Key:
 
 ![Save API Key](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/save_api_key.png)
 
-Let's limit who can use our API key by adding an access list. In our case, the API key is going to be used by a Trigger which is a component of Atlas App Services. You will find the list of IP addresses used by App Services in the documentation under [Firewall Configuration](https://www.mongodb.com/docs/atlas/app-services/security/?_ga=2.141120567.467587052.1654532140-1042404311.1621885569&_gac=1.123940344.1654536456.CjwKCAjwy_aUBhACEiwA2IHHQMNKPJhxelRKhOkjaFcX_en2YM5HUl6eDgj0T1jPp8LzU5SSyMT2vhoCuCYQAvD_BwE#firewall-configuration). Note, each IP address must be added individually. 
+Let's limit who can use our API key by adding an access list. In our case, the API key is going to be used by a Trigger which is a component of Atlas App Services. You will find the list of IP addresses used by App Services in the documentation under [Firewall Configuration](https://www.mongodb.com/docs/atlas/app-services/security/network/#firewall-configuration). Note, each IP address must be added individually. Here's an idea you can vote for to get this addressed: [Ability to provide IP addresses as a list for Network Access](https://feedback.mongodb.com/forums/924145-atlas/suggestions/42721277-ability-to-provide-ip-addresses-as-a-list-for-netw)
 
 ![Add Access List Entry](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/add_access_list_entry.png )
 
@@ -50,7 +50,7 @@ Since this solution works across your entire Atlas organization, I like to host 
 
 ![Create a Project](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/create_a_project.png)
 
-## Create and Application
+## Create an Application
 
 We will host our trigger in an [Atlas App Services](https://www.mongodb.com/docs/atlas/app-services/) Application. To begin, just click the App Services tab: 
 
@@ -66,7 +66,9 @@ I've named the application **Automation App**:
 
 ![Welcome to App Services](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/welcome_app_services2.png)
 
-From here, you have the option to simply import the Realm application and adjust any of the functions to fit your needs. If you prefer to build the application from scratch, skip to the next section.
+Click **Create App Service**. If you're presented with a set of guides, click **Close Guides** as today I am your guide.
+
+From here, you have the option to simply import the App Services application and adjust any of the functions to fit your needs. If you prefer to build the application from scratch, skip to the next section.
 
 # Import Option
 ## Step 1: Store the API Secret Key
@@ -76,12 +78,12 @@ Use the **Values** menu on the left to Create a Secret named **AtlasPrivateKeySe
 
 ![Create Secret](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/create_secret.png )
 
-## Step 2: Install the Realm CLI
+## Step 2: Install the App Services CLI
 
-The Realm CLI is available on npm. To install the Realm CLI on your system, ensure that you have [Node.js](https://nodejs.org/en/download/) installed and then run the following command in your shell:
+The [App Services CLI](https://www.mongodb.com/docs/atlas/app-services/cli/) is available on npm. To install the App Services CLI on your system, ensure that you have [Node.js](https://nodejs.org/en/download/) installed and then run the following command in your shell:
 
 ```zsh
-✗  npm install -g mongodb-realm-cli
+✗  npm install -g atlas-app-services-cli
 ```
 
 ## Step 3: Extract the Application Archive
@@ -90,15 +92,15 @@ The Realm CLI is available on npm. To install the Realm CLI on your system, ensu
 
 ## Step 4: Log into Atlas
 
-To configure your app with realm-cli, you must log in to Atlas using your API keys:
+To configure your app with App Services CLI, you must log in to Atlas using your API keys:
 
 ```zsh
-✗ realm-cli login --api-key="<Public API Key>" --private-api-key="<Private API Key>"
+✗ appservices login --api-key="<Public API Key>" --private-api-key="<Private API Key>"
 
 Successfully logged in
 ```
 
-## Step 5: Get the Realm Application ID
+## Step 5: Get the Application ID
 
 Select the **App Settings** menu and copy your Application ID:
 
@@ -106,9 +108,9 @@ Select the **App Settings** menu and copy your Application ID:
 
 ## Step 6: Import the Application
 
-Run the following realm-cli push command from the directory where you extracted the export:
+Run the following appservices push command from the directory where you extracted the export:
 ```zsh
-realm-cli push --remote="<Your App ID>"
+appservices push --remote="<Your App ID>"
 
 ...
 A summary of changes
@@ -160,7 +162,7 @@ In addition, you'll find two utility functions, **getProjectClusters** and **get
 
 ![Functions](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/functions.png )
 
-Now that you have reviewed the draft, as a final step go ahead and deploy the Realm application.
+Now that you have reviewed the draft, as a final step go ahead and deploy the App Services application.
 
 ![Review Draft & Deploy](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/review_and_deploy.png )
 
@@ -210,7 +212,7 @@ You'll find Functions under the BUILD menu:
 
 ## modifyCluster
 
-I’m only demonstrating a couple of things you can do with cluster automation, but the sky is really limitless. The following modifyCluster function is a generic wrapper around the [Update Configuration of One Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/updateConfigurationOfOneCluster) API for calling the API from App Services (or Node.js for that matter). 
+I’m only demonstrating a couple of things you can do with cluster automation, but the sky is really limitless. The following modifyCluster function is a generic wrapper around the [Modify One Multi-Cloud Cluster from One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/upateCluster) API for calling the API from App Services (or Node.js for that matter). 
 
 Create a New Function named **modifyCluster**. Set the function to Private as it will only be called by our trigger. The other default settings are fine:
 
