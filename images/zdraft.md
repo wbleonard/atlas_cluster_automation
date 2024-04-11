@@ -223,7 +223,7 @@ Switch to the Function Editor tab and paste the following code:
 ```JavaScript
 /*
  * Modifies the cluster as defined by the body parameter. 
- * See https://docs.atlas.mongodb.com/reference/api/clusters-modify-one/
+ * See https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateCluster
  *
  */
 exports = async function(username, password, projectID, clusterName, body) {
@@ -240,10 +240,10 @@ exports = async function(username, password, projectID, clusterName, body) {
   const arg = { 
     scheme: 'https', 
     host: 'cloud.mongodb.com', 
-    path: 'api/atlas/v1.0/groups/' + projectID + '/clusters/' + clusterName, 
+    path: 'api/atlas/v2/groups/' + projectID + '/clusters/' + clusterName, 
     username: username, 
     password: password,
-    headers: {'Content-Type': ['application/json'], 'Accept-Encoding': ['bzip, deflate']}, 
+    headers: {'Accept': ['application/vnd.atlas.2023-11-15+json'], 'Content-Type': ['application/json'], 'Accept-Encoding': ['bzip, deflate']}, 
     digestAuth:true,
     body: JSON.stringify(body)
   };
@@ -318,7 +318,7 @@ exports = async function() {
 
 ## Step 4: Create Trigger - pauseClusters
 
-The ability to pause and resume a cluster is supported by the [Update Configuration of One Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/updateConfigurationOfOneCluster) API. To begin, select Triggers from the menu on the left: 
+The ability to pause and resume a cluster is supported by the [Modify One Cluster from One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateCluster) API. To begin, select Triggers from the menu on the left: 
 
 ![Triggers Menu](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/triggers_menu.png )
 
@@ -400,6 +400,8 @@ Let’s say we want to scale up our cluster every day at 9am before our store op
 
 Add a new function named **scaleClusterUpTrigger**. Here’s the function code. It’s very similar to before, except the body’s been changed to alter the provider settings:
 
+> **_NOTE:_**  This example represents a single-region topology. If you have multiple regions and/or asymetric clusters using read-only and/or analytics nodes, just check the [Modify One Cluster from One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/updateCluster) API documenation for the payload details. 
+
 ```JavaScript
 exports = async function() {
   
@@ -412,12 +414,23 @@ exports = async function() {
   const password = context.values.get("AtlasPrivateKey");
 
   // Set the desired instance size...
-  const body =    {
-      "providerSettings" : {
-        "providerName" : "AWS",
-        "instanceSizeName" : "M20"
+ const body =   {
+    "replicationSpecs": [
+      {
+        "regionConfigs": [
+          {
+            "electableSpecs": {
+              "instanceSize": "M10",
+              "nodeCount":3
+            },
+            "priority":7,
+            "providerName": "AZURE",
+            "regionName": "US_EAST_2",
+          },
+        ]
       }
-    };
+    ]
+  };
   
   result = await context.functions.execute('modifyCluster', username, password, projectID, clusterName, body);
   console.log(EJSON.stringify(result));
