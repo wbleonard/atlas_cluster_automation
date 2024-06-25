@@ -9,7 +9,7 @@ In this [Atlas Cluster Automation Using Scheduled Triggers](https://www.mongodb.
 
 # Architecture
 
-Three example scheduled triggers are provided in this solution. Each trigger has an associated trigger function. The bulk of the work is handled by the **modifyCluster** function, which as the name implies is a generic function for making modifications to a cluster. It's a wrapper around the Atlas [Update Configuration of One Cluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#operation/updateConfigurationOfOneCluster) Admin API.
+Three example scheduled triggers are provided in this solution. Each trigger has an associated trigger function. The bulk of the work is handled by the **modifyCluster** function, which as the name implies is a generic function for making modifications to a cluster. It's a wrapper around the Atlas [Modify One Cluster from One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getCluster) Admin API.
 
 ![Architecture](https://raw.githubusercontent.com/wbleonard/atlas_cluster_automation/master/images/architecture.png )
 
